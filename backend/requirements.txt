@@ -1,0 +1,10 @@
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+MetaTrader5
+pandas==2.2.3
+numpy==2.1.1
+python-dotenv==1.0.1
+python-telegram-bot==21.5
+pydantic==2.9.2
+websockets==13.1
+

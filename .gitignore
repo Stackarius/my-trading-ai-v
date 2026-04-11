@@ -1,0 +1,28 @@
+# Env
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+env/
+.env/
+.env.example
+.env.local
+backend/__pycache__/
+backend/venv/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/build/
+frontend/dist/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
