@@ -2,6 +2,8 @@ import pandas as pd
 from typing import Dict, Any, Optional
 from .mt5_client import get_client
 from .trend_detector import detect_trend, get_recent_swings
+from ..mt5_client import get_client
+from .trend_detector import find_swings, get_recent_swings
 from .structure import detect_bos, detect_mss
 from .zones import identify_order_block, detect_fvg, validate_zone
 from .liquidity import detect_liquidity_sweeps, has_equal_highs_lows
@@ -55,9 +57,8 @@ def analyze_symbol(symbol: str, htf_tf: str) -> Dict[str, Any]:
     if ltf_mss != "no_mss" and ltf_valid and liq_swept:
         direction = "BUY" if htf_trend == "uptrend" else "SELL"
         entry = (last_ob['top'] + last_ob['bottom'])/2  # LTF OB avg
-    ltf_swings = get_recent_swings(ltf_df)
-    swing_key = "last_swing_low" if direction=="BUY" else "last_swing_high"
-    swing = ltf_swings.get(swing_key)
+        swing_key = "last_swing_low" if direction=="BUY" else "last_swing_high"
+        swing = ltf_swings.get(swing_key)
         sl = swing[1] if swing else entry * (0.995 if direction=="BUY" else 1.005)
         tp_dist = abs(entry - sl) * MIN_RR
         tp = entry + tp_dist if direction=="BUY" else entry - tp_dist
@@ -65,6 +66,10 @@ def analyze_symbol(symbol: str, htf_tf: str) -> Dict[str, Any]:
         return {
             "trend": htf_trend,
             "htf_zone": last_ob,
+            "htf_zone": {
+                **last_ob,
+                "time": str(last_ob['time'])
+            },
             "ltf_confirm": True,
             "signal": {
                 "action": direction,

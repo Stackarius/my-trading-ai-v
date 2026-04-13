@@ -69,10 +69,10 @@
 
       async function analyze(symbol = "EURUSD") {
         const htfRes = await fetch(
-          `http://localhost:8000/analyze/${symbol}/4H`,
+          `http://127.0.0.1:8000/analyze/${symbol}/4H`,
         );
         const ltfRes = await fetch(
-          `http://localhost:8000/analyze/${symbol}/15M`,
+          `http://127.0.0.1:8000/analyze/${symbol}/15M`,
         );
 
         const htfData = await htfRes.json();

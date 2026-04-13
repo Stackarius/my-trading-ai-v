@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple, Dict
 from .trend_detector import find_swings
-from .structure import detect_bos
 
 def detect_fvg(df: pd.DataFrame) -> List[Dict]:
     """Fair Value Gap: Imbalance gaps."""
@@ -28,6 +27,8 @@ def detect_fvg(df: pd.DataFrame) -> List[Dict]:
 
 def identify_order_block(df: pd.DataFrame, trend: str) -> List[Dict]:
     """Order Block: Last bearish candle before bull impulse (demand), vice versa."""
+    from .structure import detect_bos
+
     obs = []
     body_size = (df['close'] - df['open']).abs()
     impulse_threshold = body_size.mean() * 1.5  # Strong move

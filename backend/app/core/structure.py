@@ -1,4 +1,6 @@
 from typing import Dict, Any
+
+import pandas as pd
 from .trend_detector import get_recent_swings
 from .zones import detect_fvg
 
