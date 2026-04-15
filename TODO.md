@@ -30,5 +30,5 @@ Tracking progress on SMC-based trading assistant.
 - [ ] Unit tests
 - [ ] Manual MT5 test
 
-**Backend MVP complete. Test with `cd backend && uvicorn app.main:app --reload` then frontend/index.html. Provide MT5 demo creds in .env to fetch live data.**
+**Backend MVP complete. Test with `cd backend && uvicorn app.main:app --host 127.0.0.1 --port 8001` then frontend/index.html. Provide MT5 demo creds in .env to fetch live data.**
 

@@ -4,131 +4,434 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trading AI Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://s3.tradingview.com/tv.js"></script>
     <style>
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: Arial;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
         padding: 20px;
-        background: #1a1a1a;
-        color: white;
+        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+        color: #e0e0e0;
+      }
+      h1 {
+        text-align: center;
+        color: #00ff88;
+        margin-bottom: 30px;
       }
       .dashboard {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
+        max-width: 2000px;
+        margin: 0 auto;
       }
-      .panel {
-        background: #2a2a2a;
+      .chart-container {
+        background: rgba(42, 42, 42, 0.9);
+        border-radius: 8px;
+        border: 1px solid #333;
+        overflow: hidden;
+        min-height: 500px;
+      }
+      .chart-title {
+        background: #1a1a2e;
+        color: #00ff88;
+        padding: 12px 15px;
+        font-weight: bold;
+        border-bottom: 1px solid #333;
+      }
+      .chart-wrapper {
+        width: 100%;
+        height: 450px;
+      }
+      .signals-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+      }
+      .signal-panel {
+        background: rgba(42, 42, 42, 0.9);
         padding: 20px;
         border-radius: 8px;
+        border: 1px solid #333;
       }
-      .signal {
-        background: #00ff88;
-        color: black;
-        padding: 10px;
-        border-radius: 5px;
+      .panel {
+        background: rgba(42, 42, 42, 0.9);
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #333;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+      .panel h2 {
+        margin-top: 0;
+        color: #00ff88;
+        border-bottom: 2px solid #00ff88;
+        padding-bottom: 10px;
+      }
+      .signal-box {
+        background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+        color: #000;
+        padding: 15px;
+        border-radius: 6px;
         font-weight: bold;
+        margin-bottom: 15px;
+      }
+      .signal-box .action {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+      .signal-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        font-size: 14px;
+        margin: 10px 0;
+      }
+      .signal-details div {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 8px;
+        border-radius: 4px;
+      }
+      .signal-details label {
+        display: block;
+        font-weight: bold;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      .signal-details .value {
+        display: block;
+        font-size: 14px;
+        font-family: "Courier New", monospace;
+      }
+      .explanation {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-top: 10px;
+        font-style: italic;
+      }
+      .no-signal {
+        color: #999;
+        font-style: italic;
+        padding: 20px;
+        text-align: center;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
       }
       button {
-        background: #007bff;
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
+        padding: 12px 24px;
+        border-radius: 6px;
         cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      .info {
+        background: #1a1a2e;
+        padding: 10px;
+        border-left: 3px solid #00ff88;
+        margin: 10px 0;
+        font-size: 13px;
+      }
+      .trend-up {
+        color: #00ff88;
+      }
+      .trend-down {
+        color: #ff4444;
+      }
+      .status-loading {
+        color: #ffaa00;
+      }
+      .status-error {
+        color: #ff4444;
       }
     </style>
   </head>
   <body>
-    <h1>🧠 Trading AI - SMC Analysis</h1>
+    <h1>🧠 Trading AI - SMC Analysis Dashboard</h1>
+
+    <div class="controls">
+      <button onclick="analyze('EURUSD', '4H')">EURUSD 4H</button>
+      <button onclick="analyze('EURUSD', '1H')">EURUSD 1H</button>
+      <button onclick="analyze('GBPUSD', '4H')">GBPUSD 4H</button>
+      <button onclick="analyze('GBPUSD', '1H')">GBPUSD 1H</button>
+    </div>
+
     <div class="dashboard">
-      <div class="panel">
-        <h2>HTF Analysis (4H/1H)</h2>
-        <div id="htf-chart"></div>
-        <p>Trend: <span id="trend">Analyzing...</span></p>
-        <p>Zones: <span id="zones">--</span></p>
+      <div class="chart-container">
+        <div class="chart-title">
+          📊 HTF Chart - <span id="htf-symbol">EURUSD</span>
+          <span id="htf-tf">4H</span>
+        </div>
+        <div id="htf-chart" class="chart-wrapper"></div>
       </div>
-      <div class="panel">
-        <h2>LTF Confirmation (15M/5M)</h2>
-        <div id="ltf-chart"></div>
-        <p>Status: <span id="ltf-status">Waiting...</span></p>
+      <div class="chart-container">
+        <div class="chart-title">
+          📈 LTF Chart - <span id="ltf-symbol">EURUSD</span> 15M
+        </div>
+        <div id="ltf-chart" class="chart-wrapper"></div>
       </div>
-      <div class="panel" style="grid-column: span 2">
-        <h2>Active Signals</h2>
-        <div id="signals"></div>
-        <button onclick="analyze()">Analyze EURUSD</button>
-        <button onclick="analyze('GBPUSD')">GBPUSD</button>
+    </div>
+
+    <div class="signals-container">
+      <div class="signal-panel">
+        <h2>📊 Analysis Status</h2>
+        <div class="info">
+          <strong>Symbol:</strong> <span id="current-symbol">--</span>
+        </div>
+        <div class="info">
+          <strong>Timeframe:</strong> <span id="current-timeframe">--</span>
+        </div>
+        <div class="info">
+          <strong>HTF Trend:</strong>
+          <span id="trend" class="status-loading">Analyzing...</span>
+        </div>
+        <div class="info">
+          <strong>LTF Trend:</strong> <span id="ltf-trend">--</span>
+        </div>
+        <div class="info">
+          <strong>LTF Confirms:</strong> <span id="ltf-confirms">--</span>
+        </div>
       </div>
-      <p>Trade Status: <span id="trade-status">Idle</span></p>
+
+      <div class="signal-panel">
+        <h2>💰 Active Trading Signal</h2>
+        <div id="signals">
+          <div class="no-signal">No signals yet. Click analyze to start.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top: 20px">
+      <h2>📈 Trade Details</h2>
+      <div id="trade-details">
+        <div class="no-signal">Waiting for analysis...</div>
+      </div>
     </div>
 
     <script>
-      let tvWidget = null;
+      const API_URL = "http://127.0.0.1:8001";
+      let htfWidget = null;
+      let ltfWidget = null;
 
-      async function analyze(symbol = "EURUSD") {
-        const htfRes = await fetch(
-          `http://127.0.0.1:8000/analyze/${symbol}/4H`,
-        );
-        const ltfRes = await fetch(
-          `http://127.0.0.1:8000/analyze/${symbol}/15M`,
-        );
-
-        const htfData = await htfRes.json();
-        const ltfData = await ltfRes.json();
-
-        document.getElementById("trend").textContent = htfData.trend;
-
-        document.getElementById("ltf-status").textContent =
-          ltfData.status || "Waiting...";
-
-        updateSignals(htfData.signal);
-
-        renderChart(symbol);
+      function getTradingViewInterval(tf) {
+        const map = {
+          "1M": "1",
+          "5M": "5",
+          "15M": "15",
+          "1H": "60",
+          "4H": "240",
+          "1D": "1D",
+          W: "1W",
+        };
+        return map[tf] || "240";
       }
-      // Embed TradingView
-      function renderChart(symbol) {
-        new TradingView.widget({
+
+      function renderCharts(symbol, htfTf) {
+        // Clean up old widgets
+        const htfContainer = document.getElementById("htf-chart");
+        const ltfContainer = document.getElementById("ltf-chart");
+
+        htfContainer.innerHTML = "";
+        ltfContainer.innerHTML = "";
+
+        // Update labels
+        document.getElementById("htf-symbol").textContent = symbol;
+        document.getElementById("htf-tf").textContent = htfTf;
+        document.getElementById("ltf-symbol").textContent = symbol;
+
+        // Create HTF chart
+        const htfConfig = {
+          autosize: true,
+          symbol: `FX_IDC:${symbol}`,
+          interval: getTradingViewInterval(htfTf),
+          timezone: "Etc/UTC",
+          theme: "dark",
+          style: "1",
+          locale: "en",
+          toolbar_bg: "#1a1a2e",
+          enable_publishing: false,
+          allow_symbol_change: false,
           container_id: "htf-chart",
-          symbol: symbol,
-          interval: "240",
-          theme: "dark",
-          width: "100%",
-          height: 400,
-        });
+        };
 
-        new TradingView.widget({
-          container_id: "ltf-chart",
-          symbol: symbol,
+        new TradingView.widget(htfConfig);
+
+        // Create LTF chart (15M)
+        const ltfConfig = {
+          autosize: true,
+          symbol: `FX_IDC:${symbol}`,
           interval: "15",
+          timezone: "Etc/UTC",
           theme: "dark",
-          width: "100%",
-          height: 400,
-        });
+          style: "1",
+          locale: "en",
+          toolbar_bg: "#1a1a2e",
+          enable_publishing: false,
+          allow_symbol_change: false,
+          container_id: "ltf-chart",
+        };
+
+        new TradingView.widget(ltfConfig);
       }
-      function updateSignals(signal) {
-        const sigDiv = document.getElementById("signals");
-        if (signal) {
-          sigDiv.innerHTML = `
-<div class="signal">
-    ${signal.action}<br>
-    Entry: ${signal.entry}<br>
-    SL: ${signal.sl}<br>
-    TP: ${signal.tp}<br>
-    RR: ${signal.rr}<br>
-    <br>
-    <b>Reason:</b><br>
-    ${signal.reason}
-</div>
-`;
-        } else {
-          sigDiv.innerHTML = "<p>No active signals</p>";
+
+      async function analyze(symbol = "EURUSD", htfTf = "4H") {
+        document.getElementById("current-symbol").textContent = symbol;
+        document.getElementById("current-timeframe").textContent = htfTf;
+        document.getElementById("trend").textContent = "Analyzing...";
+        document.getElementById("trend").className = "status-loading";
+        document.getElementById("signals").innerHTML =
+          '<div class="no-signal">Fetching data...</div>';
+
+        // Render charts
+        renderCharts(symbol, htfTf);
+
+        try {
+          const response = await fetch(`${API_URL}/analyze/${symbol}/${htfTf}`);
+
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("API Response:", data);
+
+          // Update trend
+          const trendElement = document.getElementById("trend");
+          trendElement.textContent = data.trend || "neutral";
+          trendElement.className =
+            data.trend === "uptrend" ? "trend-up" : "trend-down";
+
+          // Update LTF info
+          document.getElementById("ltf-trend").textContent =
+            data.ltf_trend || "--";
+          document.getElementById("ltf-confirms").textContent =
+            data.ltf_confirms ? "✓ Yes" : "✗ No";
+
+          // Update signals
+          updateSignals(data);
+
+          // Update trade details
+          updateTradeDetails(data);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          document.getElementById("trend").textContent = "Error";
+          document.getElementById("trend").className = "status-error";
+          document.getElementById("signals").innerHTML = `
+            <div class="no-signal">
+              ❌ Error: ${error.message}<br>
+              Make sure the API is running on port 8001
+            </div>
+          `;
         }
       }
 
-      // Init
-      analyze();
+      function updateSignals(data) {
+        const sigDiv = document.getElementById("signals");
+
+        if (data.signal && data.signal.action) {
+          const signal = data.signal;
+          const isBuy = signal.action === "BUY";
+
+          sigDiv.innerHTML = `
+            <div class="signal-box">
+              <div class="action">${isBuy ? "📈" : "📉"} ${signal.action}</div>
+              <div class="signal-details">
+                <div>
+                  <label>Entry Price:</label>
+                  <span class="value">${signal.entry.toFixed(5)}</span>
+                </div>
+                <div>
+                  <label>Stop Loss:</label>
+                  <span class="value">${signal.sl.toFixed(5)}</span>
+                </div>
+                <div>
+                  <label>Take Profit:</label>
+                  <span class="value">${signal.tp.toFixed(5)}</span>
+                </div>
+                <div>
+                  <label>Risk/Reward:</label>
+                  <span class="value">1:${signal.rr}</span>
+                </div>
+                <div>
+                  <label>Distance:</label>
+                  <span class="value">${signal.distance_pips.toFixed(1)} pips</span>
+                </div>
+              </div>
+              ${data.explanation ? `<div class="explanation">💡 ${data.explanation}</div>` : ""}
+            </div>
+          `;
+        } else {
+          sigDiv.innerHTML = `
+            <div class="no-signal">
+              ⏳ No trading signals yet<br>
+              (Trend: ${data.trend || "neutral"})
+            </div>
+          `;
+        }
+      }
+
+      function updateTradeDetails(data) {
+        const detailDiv = document.getElementById("trade-details");
+
+        let html = `
+          <div class="info">
+            <strong>HTF Zone:</strong><br>
+        `;
+
+        if (data.htf_zone) {
+          html += `
+            Top: ${data.htf_zone.top?.toFixed(5) || "--"}<br>
+            Bottom: ${data.htf_zone.bottom?.toFixed(5) || "--"}<br>
+            Time: ${data.htf_zone.time || "--"}
+          `;
+        } else {
+          html += "No order blocks detected";
+        }
+
+        html += `
+          </div>
+          <div class="info">
+            <strong>Setup Status:</strong><br>
+            Valid Setup: ${data.valid_setup !== undefined ? (data.valid_setup ? "✓" : "✗") : "--"}<br>
+            LTF Confirmation: ${data.ltf_confirm !== undefined ? (data.ltf_confirm ? "✓" : "✗") : "--"}<br>
+            Mitigation: ${data.mitigation !== undefined ? (data.mitigation ? "✓" : "✗") : "--"}
+          </div>
+        `;
+
+        if (data.reason) {
+          html += `<div class="info"><strong>Reason:</strong> ${data.reason}</div>`;
+        }
+
+        if (data.error) {
+          html += `<div class="info" style="border-left-color: #ff4444;">⚠️ <strong>Error:</strong> ${data.error}</div>`;
+        }
+
+        detailDiv.innerHTML = html;
+      }
+
+      // Auto-analyze on load
+      window.addEventListener("load", () => {
+        analyze("EURUSD", "4H");
+      });
     </script>
   </body>
 </html>
