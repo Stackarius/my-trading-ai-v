@@ -95,7 +95,6 @@ class MT5Client:
         if rates is None:
             logger.error(f"Failed to fetch {symbol} {timeframe}")
             return None
-
         df = pd.DataFrame(rates)
         df['time'] = pd.to_datetime(df['time'], unit='s')
         df.set_index('time', inplace=True)

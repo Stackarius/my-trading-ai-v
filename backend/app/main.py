@@ -44,7 +44,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/")
 def read_root():
     """Serve the frontend dashboard"""
@@ -53,11 +52,9 @@ def read_root():
         return FileResponse(frontend_path, media_type="text/html")
     return {"message": "Trading AI SMC Backend - Ready for HTF/LTF analysis"}
 
-
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
-
 
 @app.get("/analyze/{symbol}/{htf_tf}")
 async def analyze(symbol: str, htf_tf: str):
@@ -72,4 +69,4 @@ async def analyze(symbol: str, htf_tf: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

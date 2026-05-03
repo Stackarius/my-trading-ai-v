@@ -1,5 +1,7 @@
 import pandas as pd
 from typing import Dict, Any, Optional
+from .mt5_client import get_client
+from .trend_detector import detect_trend, get_recent_swings
 from ..mt5_client import get_client
 from .trend_detector import find_swings, get_recent_swings
 from .structure import detect_bos, detect_mss
@@ -69,8 +71,12 @@ def analyze_symbol(symbol: str, htf_tf: str) -> Dict[str, Any]:
         
         return {
             "trend": htf_trend,
-            "ltf_trend": ltf_trend,
-            "ltf_confirms": ltf_confirms,
+            "htf_zone": last_ob,
+            "htf_zone": {
+                **last_ob,
+                "time": str(last_ob['time'])
+            },
+            "ltf_confirm": True,
             "signal": {
                 "action": direction,
                 "entry": round(entry, 5),
